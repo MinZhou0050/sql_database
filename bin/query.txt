@@ -1,0 +1,198 @@
+1. Show the subject names of books supplied by *supplier2*.
+select CategoryName 
+from db_subject, db_book, db_supplier 
+where CompanyName = 'supplier2' 
+and db_supplier.SupplierID = db_book.SupplierID 
+and db_book.SubjectID = db_subject.SubjectID;
+
+
+2. Show the name and price of the most expensive book supplied by *supplier3*.
+select Title, max(UnitPrice) 
+from db_book, db_supplier 
+where CompanyName = 'supplier3' 
+and db_supplier.SupplierID = db_book.SupplierID;
+	 
+	 
+3. Show the unique names of all books ordered by *lastname1 firstname1*.
+select distinct Title 
+from db_book, db_customer, db_order, db_order_detail 
+where LastName = 'lastname1' and FirstName = 'firstname1' 
+and db_customer.CustomerID = db_order.CustomerID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID;
+
+     
+4. Show the title of books which have more than 10 units in stock.
+select Title 
+from db_book 
+where Quantity > 10;
+
+5. Show the total price *lastname1 firstname1* has paid for the books.
+select sum(UnitPrice*db_order_detail.Quantity) as total_price 
+from db_book, db_customer, db_order, db_order_detail 
+where LastName = 'lastname1' 
+and FirstName = 'firstname1' 
+and db_customer.CustomerID = db_order.CustomerID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID;
+
+6. Show the names of the customers who have paid less than $80 in totals.
+select LastName, FirstName 
+from (select LastName, FirstName, sum(UnitPrice*db_order_detail.Quantity) as total_price 
+from db_book, db_customer, db_order, db_order_detail 
+where db_customer.CustomerID = db_order.CustomerID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID 
+group by LastName, FirstName) as t where total_price < 80; 
+
+	 
+7. Show the name of books supplied by *supplier2*.
+select Title 
+from db_book, db_supplier 
+where CompanyName = 'supplier2' 
+and db_supplier.SupplierID = db_book.SupplierID;
+
+8. Show the total price each customer paid and their names.  List the result in descending price.
+select LastName, FirstName, sum(UnitPrice*db_order_detail.Quantity) as total_price 
+from db_book, db_customer, db_order, db_order_detail 
+where db_customer.CustomerID = db_order.CustomerID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID 
+group by LastName, FirstName 
+order by total_price desc;
+
+	 
+9. Show the names of all the books shipped on 08/04/2016 and their shippers' names.
+select Title, ShipperName 
+from db_book, db_order, db_order_detail, db_shipper 
+where ShippedDate = '2016-08-04' 
+and db_order.ShipperID = db_shipper.ShipperID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID;
+	 
+10. Show the unique names of all the books *lastname1 firstname1* and *lastname4 firstname4* *both* ordered.
+select distinct Title 
+FROM (
+		select Title from db_book, db_customer, db_order, db_order_detail 
+		where LastName = 'lastname1' 
+		and FirstName = 'firstname1' 
+		and db_customer.CustomerID = db_order.CustomerID 
+		and db_order.OrderID = db_order_detail.OrderID 
+		and db_order_detail.BookID = db_book.BookID) 
+as title1 inner JOIN (
+		select Title 
+		from db_book, db_customer, db_order, db_order_detail 
+		where LastName = 'lastname4' 
+		and FirstName = 'firstname4' 
+		and db_customer.CustomerID = db_order.CustomerID 
+		and db_order.OrderID = db_order_detail.OrderID 
+		and db_order_detail.BookID = db_book.BookID) 
+as title2 
+using(Title);
+
+ 
+11. Show the names of all the books *lastname6 firstname6* was responsible for.
+     
+select Title 
+from db_book, db_employee, db_order, db_order_detail 
+where LastName = 'lastname6' and FirstName = 'firstname6' 
+and db_employee.EmployeeID = db_order.EmployeeID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID;	 
+	 
+	 
+12. Show the names of all the ordered books and their total quantities.  List the result in ascending quantity.
+SELECT Title, sum(db_order_detail.Quantity) as TotalQuantities
+FROM db_book, db_order_detail
+WHERE db_order_detail.BookID = db_book.BookID
+GROUP BY db_book.BookID
+ORDER BY sum(db_order_detail.Quantity) asc
+
+
+
+13. Show the names of the customers who ordered at least 2 books.
+select LastName, FirstName 
+FROM (
+	select LastName, FirstName, 
+	sum(Quantity) as total 
+	from db_customer, db_order, db_order_detail 
+	where db_order_detail.OrderID = db_order.OrderID 
+	and db_order.CustomerID = db_customer.CustomerID 
+	group by db_customer.CustomerID) 
+as a 
+where total >= 2;
+
+
+
+14. Show the name of the customers who have ordered at least a book in *category3* or *category4* and the book names.
+select FirstName, LastName, Title 
+from db_book, db_customer, db_order, db_order_detail, db_subject 
+where CategoryName 
+in ('category3','category4') 
+and db_subject.SubjectID = db_book.SubjectID 
+and db_book.BookID = db_order_detail.BookID 
+and db_order_detail.OrderID = db_order.OrderID 
+and db_order.CustomerID = db_customer.CustomerID;
+
+
+15. Show the name of the customer who has ordered at least one book written by *author1*.
+select FirstName,LastName
+from db_book, db_customer, db_order, db_order_detail 
+where author = 'author1' 
+and db_customer.CustomerID = db_order.CustomerID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID;
+     
+	 
+16. Show the name and total sale (price of orders) of each employee.
+select FirstName, LastName, sum(UnitPrice*db_order_detail.Quantity) as total_sale 
+from db_book, db_employee, db_order, db_order_detail 
+where db_employee.EmployeeID = db_order.EmployeeID 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID 
+group by LastName, FirstName;
+
+17. Show the book names and their respective quantities for open orders (the orders which have not been shipped) at midnight
+     08/04/2016.
+select Title, db_order_detail.Quantity 
+from db_book, db_order, db_order_detail 
+where ShippedDate > '2016-08-04' 
+and db_order.OrderID = db_order_detail.OrderID 
+and db_order_detail.BookID = db_book.BookID;	 
+	 
+18. Show the names of customers who have ordered more than 1 book and
+     the corresponding quantities.  List the result in the descending
+     quantity.
+select LastName, FirstName, sum(Quantity) as total
+from db_customer, db_order, db_order_detail 
+where db_order_detail.OrderID = db_order.OrderID 
+and db_order.CustomerID = db_customer.CustomerID 
+group by db_customer.CustomerID HAVING total >1  order by total desc;	 
+	 
+19. Show the names of customers who have ordered more than 3 books and
+     their respective telephone numbers.
+select  FirstName, LastName, Phone 
+FROM (select LastName, FirstName, Phone, sum(Quantity) as total
+from db_customer, db_order, db_order_detail 
+where db_order_detail.OrderID = db_order.OrderID 
+and db_order.CustomerID = db_customer.CustomerID 
+group by db_customer.CustomerID) as tt where total >= 3;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
